@@ -1,2 +1,2 @@
-# finalProject
-pyoyecto
+# FinalProject
+proyecto
