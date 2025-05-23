@@ -1,19 +1,27 @@
 import requests
+from dotenv import load_dotenv  #se importa dotenv para leer el .env
+import os   #para sacar algo de .env
 
-API_KEY = 'TU_API_KEY'  
+load_dotenv()   #se carga el acrhivo .env
 
-acciones = {
-    'Microsoft': 'MSFT',
-    'Samsung': 'SSNLF',
-    'Tesla': 'TSLA'
-}
+apiKey = os.getenv('API_KEY')   #se saca la key de la api
 
-for nombre, simbolo in acciones.items():
-    url = f"https://api.twelvedata.com/price?symbol={simbolo}&apikey={API_KEY}"
-    respuesta = requests.get(url).json()
+def actionsList():
+    actions = {
+        'Microsoft': 'MSFT',
+        'Samsung': 'SSNLF',
+        'Tesla': 'TSLA',
+        'Nvidia': 'NVDA',
+        'Toyota': 'TYO'
+    }
 
-    if 'price' in respuesta:
-        print(f"El precio actual de {nombre} ({simbolo}) es: ${respuesta['price']}")
-    else:
-        print(f"No se pudo obtener el precio de {nombre} ({simbolo})")
+    for name, symbol in actions.items():
+        url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={apiKey}"
+        resp = requests.get(url).json()
 
+        if 'price' in resp:
+            print(f"El precio actual de {name} ({symbol}) es: ${resp['price']}")
+        else:
+            print(f"No se pudo obtener el precio de {name} ({symbol})")
+
+actionsList()
