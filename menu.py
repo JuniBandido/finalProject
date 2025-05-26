@@ -1,10 +1,37 @@
-import time
+from dotenv import load_dotenv
+import boto3
+import os
 
-CLIENTES = {
-    5677804: {"nombre": "Eduardo orellana", "correo": "Eduardoorll58@gmail.com", "saldo": 15000.00},
-    1083445: {"nombre": "Jose Nolberto", "correo": "Nolbretose885@gmail.com", "saldo": 15000.00},
-    30999834: {"nombre": "Ruiz Alberto", "correo": "Rujberto285@gmail.com", "saldo": 15000.00}
-}
+def Login(): #Funcion para iniciar sesion
+    userExist = False
+    while userExist == False:
+        load_dotenv()
+        "aws_access_key_id" == os.getenv("aws_access_key_id")
+        "aws_secret_access_key" == os.getenv("aws_secret_access_key")
+        
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+
+        tabla = dynamodb.Table('Users_firstTable')
+
+        usuario_id = input("Ingresa tu correo: ")
+
+        respuesta = tabla.get_item(Key={"email": usuario_id})
+
+        usuario = respuesta.get('Item')
+
+        if usuario:
+            print("✅ Usuario encontrado:")
+            print(f"Bienvenido {usuario['name']}!")
+            userExist = True
+        else:
+            print("❌ Usuario no encontrado.")
+
+
+        
+
+"""""
+CLIENTES = usuario
+
 def buscar_usuario(nombre):
     for id_unico, datos in CLIENTES.items():
         if datos["nombre"].lower() == nombre.lower():
@@ -50,3 +77,4 @@ def main():
                 print(" X Usuario no encontrado, por favir intente nuevamente.")
 
 main()
+"""""
