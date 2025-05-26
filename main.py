@@ -17,7 +17,7 @@ table = dynamodb.Table('Users_firstTable')
 
 print(Fore.BLUE + "---- Bienvenido a INVERSIONES URL ----")
 
-mainmenu = input(Fore.YELLOW + "Ingrese el numero correspondiente a la acción que desea realizar\n1. - Iniciar sesion\n2. - Registrarme\n3. - Salir\n")
+main_menu = input(Fore.YELLOW + "Ingrese el numero correspondiente a la acción que desea realizar\n1. - Iniciar sesion\n2. - Registrarme\n3. - Salir\n")
 
 # Función para imprimir con color segun nivel
 def print_color(text, level='NORMAL'):
@@ -31,86 +31,83 @@ def print_color(text, level='NORMAL'):
     reset = '\033[0m'
     print(f"{color}{text}{reset}")
 
-def actionsList():
+def actions_list():
     actions = {
-        'Microsoft': 'MSFT',    # diccionaro con los nombres 
+        'Microsoft': 'MSFT',
         'Samsung': 'SSNLF',
         'Tesla': 'TSLA',
         'Nvidia': 'NVDA',
-        'Toyota': 'TM'  
+        'Toyota': 'TM'
     }
 
-    precios = {}
+    prices = {}
 
     for name, symbol in actions.items():
-        intentos = 3
-        while intentos > 0:
+        attempts = 3
+        while attempts > 0:
             try:
-                url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={apiKey}"  # api url de precios
+                url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={apiKey}" # api url de precios
                 resp = requests.get(url, timeout=5)
                 data = resp.json()
                 if 'price' in data and data['price'] not in [None, 'None', '', 'null']:
-                    print_color(f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}", 'INFO')  # precios obtenidos
-                    precios[symbol] = Decimal(data['price'])
-                    intentos = 0
+                    print_color(f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}", 'INFO') # precios obtenidos 
+                    prices[symbol] = Decimal(data['price'])
+                    attempts = 0
                 else:
                     error_msg = data.get('message', 'Respuesta inválida.')
                     print_color(f"[ERROR] No se pudo obtener el precio de {name} ({symbol}): {error_msg}", 'ERROR')
-                    intentos = 0
+                    attempts = 0
             except Exception as e:
-                intentos -= 1
-                if intentos == 0:
+                attempts -= 1
+                if attempts == 0:
                     print_color(f"[ERROR] No se pudo obtener el precio de {name} ({symbol}) tras varios intentos.", 'ERROR')
                 else:
-                    time.sleep(2)
-        time.sleep(2)  # tiempo de espera entre cada acción
-    return precios
+                    time.sleep(4)
+        time.sleep(4) # tiempo de espera entre cada acción
+    return prices
 
-def newMoney():
+def new_money():
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table('Users_firstTable')
-    respuesta = table.update_item(
-        Key={'email': usuario_id},    # clave primaria del email
-        UpdateExpression="SET money = :nuevo_saldo",  # actializa el saldo
-        ExpressionAttributeValues={':nuevo_saldo': finalMoney},
+    response = table.update_item(
+        Key={'email': user_id}, # clave primaria del email
+        UpdateExpression="SET money = :new_balance", # actializa el saldo
+        ExpressionAttributeValues={':new_balance': final_money},
         ReturnValues="UPDATED_NEW"
     )
 
     print_color(Fore.MAGENTA + "---- Saldo actualizado ----", 'INFO')
-    print_color(f"Nuevo saldo: {respuesta['Attributes']['money']}", 'INFO')
+    print_color(f"Nuevo saldo: {response['Attributes']['money']}", 'INFO')
 
-resp = actionsList
+resp = actions_list
 
-if mainmenu == "1":
-    userExist = False
-    while userExist == False:
-        load_dotenv()   # recarga variables
-        "aws_access_key_id" == os.getenv("aws_access_key_id")  # carga las credenciales aws
+if main_menu == "1":
+    user_exists = False
+    while user_exists == False:
+        load_dotenv()
+        "aws_access_key_id" == os.getenv("aws_access_key_id")
         "aws_secret_access_key" == os.getenv("aws_secret_access_key")
         
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-
         table = dynamodb.Table('Users_firstTable')
 
-        usuario_id = input("Ingrese su correo: ")   # pide el email
+        user_id = input("Ingrese su correo: ") # pide el email
+        response = table.get_item(Key={"email": user_id})
+        user = response.get('Item')
 
-        respuesta = table.get_item(Key={"email": usuario_id})
-
-        usuario = respuesta.get('Item')
-
-        if usuario:
+        if user:
             print_color("Usuario encontrado:", 'INFO')
-            print_color(Fore.CYAN + f"--- Bienvenido {usuario['name']}! - Tu saldo es de {usuario['money']} ---", 'INFO')
-            money = usuario['money']   # muestra el saldo actual
-            userExist = True
+            print_color(Fore.CYAN + f"--- Bienvenido {user['name']}! - Tu saldo es de {user['money']} ---", 'INFO')
+            money = user['money'] # muestra el saldo actual
+            user_exists = True
         else:
             print_color("Usuario no encontrado.", 'ERROR')
 
-elif mainmenu == "2":
+elif main_menu == "2":
     aws = AWSConnections()
-    awsSession = aws.getSession()
+    aws_session = aws.getSession()
 
-    def saveUserDynamoDB(session, user_data):
+    def save_user_dynamodb(session, user_data):
         dynamodb = session.resource('dynamodb')
         table = dynamodb.Table('Users_firstTable')
         response = table.put_item(Item=user_data)
@@ -118,72 +115,71 @@ elif mainmenu == "2":
         print_color("Se ha registrado con éxito! Recibio $15,000", 'INFO')
         return response, table
 
-    email = usuario_id = input("Ingrese su correo electrónico: ")  # pedi datos registrados
+    email = user_id = input("Ingrese su correo electrónico: ")
     name = input("Ingrese su nombre: ")
-    money = 15000   # muestra el saldo
+    money = 15000
     user_item = {"email": email, "name": name, "money": money}
 
-    saveUserDynamoDB(awsSession, user_item)
+    save_user_dynamodb(aws_session, user_item)
 
-elif mainmenu == "3":
+elif main_menu == "3":
     print_color("Gracias por vicitar inverisones URL", 'INFO')
     exit()
 
-programRunning = True
-while programRunning == True:
+program_running = True
+while program_running == True:
 
-    WhatDo = input(Fore.MAGENTA + f"Que desea realizar?\n1. - Comprar acciones\n2. - Vender acciones\n3. - Ver resumen de inversión\n4. - Salir\n")
-    if WhatDo == "1":
-        actionsPrice = actionsList()
+    what_do = input(Fore.MAGENTA + f"Que desea realizar?\n1. - Comprar acciones\n2. - Vender acciones\n3. - Ver resumen de inversión\n4. - Salir\n")
+    if what_do == "1":
+        actions_price = actions_list()
         action = input(Fore.LIGHTCYAN_EX + "¿Qué acción desea comprar? (Por favor ingrese las letras)\n").upper()
 
-        if action in actionsPrice:
+        if action in actions_price:
             money = Decimal(str(money))
-            actionPrice = actionsPrice[action]
-            finalMoney = money - actionPrice    # actualiza el saldo despues de la compra
+            action_price = actions_price[action]
+            final_money = money - action_price   # actualiza el saldo despues de la compra
 
-            respuesta = table.get_item(Key={"email": usuario_id})
-            usuario = respuesta.get('Item')
-            portfolio = usuario.get('portfolio', {})
-            history = usuario.get('history', [])
+            response = table.get_item(Key={"email": user_id})
+            user = response.get('Item')
+            portfolio = user.get('portfolio', {})
+            history = user.get('history', [])
 
             if action in portfolio:
-                portfolio[action] += 1   # suma las acciones
+                portfolio[action] += 1
             else:
                 portfolio[action] = 1
 
-            # guarda el historial de compras
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             history.append({
                 "type": "compra",
                 "accion": action,
-                "precio": str(actionPrice),
+                "precio": str(action_price),
                 "fecha": timestamp
             })
 
             table.update_item(
-                Key={'email': usuario_id},
-                UpdateExpression="SET money = :nuevo_saldo, portfolio = :portafolio, history = :historial",
+                Key={'email': user_id},
+                UpdateExpression="SET money = :new_balance, portfolio = :portfolio, history = :history",
                 ExpressionAttributeValues={
-                    ':nuevo_saldo': finalMoney,
-                    ':portafolio': portfolio,
-                    ':historial': history
+                    ':new_balance': final_money,
+                    ':portfolio': portfolio,
+                    ':history': history
                 },
                 ReturnValues="UPDATED_NEW"
             )
             print_color(f"----Compra realizada con éxito----", 'INFO')
-            newMoney()
+            new_money()
 
         else:
             print_color("Lo sentimos su acción no es válida.", 'ERROR')
 
-    elif WhatDo == "2":
-        actionsPrice = actionsList()
+    elif what_do == "2":
+        actions_price = actions_list()
 
-        respuesta = table.get_item(Key={"email": usuario_id})
-        usuario = respuesta.get('Item')
-        portfolio = usuario.get('portfolio', {})
-        history = usuario.get('history', [])
+        response = table.get_item(Key={"email": user_id})
+        user = response.get('Item')
+        portfolio = user.get('portfolio', {})
+        history = user.get('history', [])
 
         if portfolio:
             print_color("Acciones disponibles para vender:", 'INFO')
@@ -191,75 +187,69 @@ while programRunning == True:
                 print_color(f"{accion}: {cantidad}", 'NORMAL')
         else:
             print_color("No tienes acciones para vender.", 'WARNING')
-            pass
 
         action = input("¿Qué acción desea vender? (Ingresa las letras)\n").upper()
 
-        if action in actionsPrice:
-            investment = Decimal(str(usuario.get('investment', 0)))
-            actionPrice = actionsPrice[action]
-            money = Decimal(str(usuario['money']))
+        if action in actions_price:
+            investment = Decimal(str(user.get('investment', 0)))
+            action_price = actions_price[action]
+            money = Decimal(str(user['money']))
 
             if portfolio.get(action, 0) > 0:
-                finalMoney = money + actionPrice    # muestra el saldo despues de alguna venta
+                final_money = money + action_price
                 portfolio[action] -= 1
                 if portfolio[action] == 0:
                     del portfolio[action]
-
-                # guarda el historial de venta
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 history.append({
                     "type": "venta",
                     "accion": action,
-                    "precio": str(actionPrice),
+                    "precio": str(action_price),
                     "fecha": timestamp
                 })
 
                 table.update_item(
-                    Key={'email': usuario_id},
-                    UpdateExpression="SET money = :nuevo_saldo, portfolio = :portafolio, history = :historial REMOVE investment",
+                    Key={'email': user_id},
+                    UpdateExpression="SET money = :new_balance, portfolio = :portfolio, history = :history REMOVE investment",
                     ExpressionAttributeValues={
-                        ':nuevo_saldo': finalMoney,
-                        ':portafolio': portfolio,
-                        ':historial': history
+                        ':new_balance': final_money,
+                        ':portfolio': portfolio,
+                        ':history': history
                     },
                     ReturnValues="UPDATED_NEW"
                 )
-                print_color(f"Se ha vendido {action} por ${actionPrice}.", 'INFO')
+                print_color(f"Se ha vendido {action} por ${action_price}.", 'INFO')
             else:
                 print_color("----No tiene esa acción en su portafolio para vender----", 'WARNING')
         else:
             print_color("----Acción no disponible----", 'ERROR')
 
-    elif WhatDo == "3":
-        def resumenInversion():
-            respuesta = table.get_item(Key={"email": usuario_id})
-            usuario = respuesta.get('Item')
+    elif what_do == "3":
+        def investment_summary():
+            response = table.get_item(Key={"email": user_id})
+            user = response.get('Item')
 
-            if usuario:
-                print_color(Fore.CYAN + f"---Resumen de Inversión de {usuario['name']} ---", 'INFO')
-                portfolio = usuario.get('portfolio', {})
+            if user:
+                print_color(Fore.CYAN + f"---Resumen de Inversión de {user['name']} ---", 'INFO')
+                portfolio = user.get('portfolio', {})
                 if portfolio:
                     print_color("Acciones en las que ha invertido:", 'INFO')
                     for accion, cantidad in portfolio.items():
                         print_color(f"{accion}: {cantidad}", 'NORMAL')
                 else:
                     print_color("Aún no ha invertido en ninguna acción.", 'WARNING')
-                print_color(f"Saldo disponible: ${usuario['money']}", 'INFO')
-
-                # muestra el historial completo
-                history = usuario.get('history', [])
+                print_color(f"Saldo disponible: ${user['money']}", 'INFO')
+                history = user.get('history', [])
                 if history:
                     print_color("\nHistorial de transacciones:", 'INFO')
                     for evento in history:
-                        print_color(f"- {evento['fecha']} | {evento['type'].capitalize()} | Acción: {evento['accion']} | Precio: ${evento['precio']}", 'NORMAL')
+                        precio = evento.get('precio', 'N/A')
+                        print_color(f"- {evento['fecha']} | {evento['type'].capitalize()} | Acción: {evento['accion']} | Precio: ${precio}", 'NORMAL')
                 else:
                     print_color("No hay historial de transacciones.", 'WARNING')
             else:
                 print_color("Usuario no encontrado.", 'ERROR')
-        resumenInversion()
-
-
-    elif WhatDo == "4":
+        investment_summary()
+    elif what_do == "4":
         print_color("Saliendo...", 'INFO')
         exit()
