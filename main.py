@@ -50,6 +50,7 @@ def actions_list():
                 resp = requests.get(url, timeout=5)
                 data = resp.json()
                 if 'price' in data and data['price'] not in [None, 'None', '', 'null']:
+<<<<<<< HEAD
                     print_color(f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}", 'INFO') # precios obtenidos 
                     prices[symbol] = Decimal(data['price'])
                     attempts = 0
@@ -57,6 +58,15 @@ def actions_list():
                     error_msg = data.get('message', 'Respuesta inválida.')
                     print_color(f"[ERROR] No se pudo obtener el precio de {name} ({symbol}): {error_msg}", 'ERROR')
                     attempts = 0
+=======
+                    print_color(Fore.BLUE + f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}",)  # precios obtenidos
+                    precios[symbol] = Decimal(data['price'])
+                    intentos = 0
+                else:
+                    error_msg = data.get('message', 'Respuesta inválida.')
+                    print_color(Fore.RED + f"[ERROR] No se pudo obtener el precio de {name} ({symbol}): {error_msg}",)
+                    intentos = 0
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
             except Exception as e:
                 attempts -= 1
                 if attempts == 0:
@@ -70,9 +80,15 @@ def new_money():
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table('Users_firstTable')
     response = table.update_item(
+<<<<<<< HEAD
         Key={'email': user_id}, # clave primaria del email
         UpdateExpression="SET money = :new_balance", # actializa el saldo
         ExpressionAttributeValues={':new_balance': final_money},
+=======
+        Key={'email': user_id},    # clave primaria del email
+        UpdateExpression="SET money = :nuevo_saldo",  # actializa el saldo
+        ExpressionAttributeValues={':nuevo_saldo': finalMoney},
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
         ReturnValues="UPDATED_NEW"
     )
 
@@ -91,6 +107,7 @@ if main_menu == "1":
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table('Users_firstTable')
 
+<<<<<<< HEAD
         user_id = input("Ingrese su correo: ") # pide el email
         response = table.get_item(Key={"email": user_id})
         user = response.get('Item')
@@ -100,8 +117,21 @@ if main_menu == "1":
             print_color(Fore.CYAN + f"--- Bienvenido {user['name']}! - Tu saldo es de {user['money']} ---", 'INFO')
             money = user['money'] # muestra el saldo actual
             user_exists = True
+=======
+        user_id = input("Ingrese su correo: ")   # pide el email
+
+        response = table.get_item(Key={"email": user_id})
+
+        user = response.get('Item')
+
+        if user:
+            print_color("usuario encontrado:", 'INFO')
+            print_color(Fore.CYAN + f"--- Bienvenido {user['name']}! - Tu saldo es de {user['money']} ---", 'INFO')
+            money = user['money']   # muestra el saldo actual
+            userExist = True
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
         else:
-            print_color("Usuario no encontrado.", 'ERROR')
+            print_color("usuario no encontrado.", 'ERROR')
 
 elif main_menu == "2":
     aws = AWSConnections()
@@ -115,7 +145,11 @@ elif main_menu == "2":
         print_color("Se ha registrado con éxito! Recibio $15,000", 'INFO')
         return response, table
 
+<<<<<<< HEAD
     email = user_id = input("Ingrese su correo electrónico: ")
+=======
+    email = user_id = input("Ingrese su correo electrónico: ")  # pedi datos registrados
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
     name = input("Ingrese su nombre: ")
     money = 15000
     user_item = {"email": email, "name": name, "money": money}
@@ -159,7 +193,11 @@ while program_running == True:
 
             table.update_item(
                 Key={'email': user_id},
+<<<<<<< HEAD
                 UpdateExpression="SET money = :new_balance, portfolio = :portfolio, history = :history",
+=======
+                UpdateExpression="SET money = :nuevo_saldo, portfolio = :portafolio, history = :historial",
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
                 ExpressionAttributeValues={
                     ':new_balance': final_money,
                     ':portfolio': portfolio,
@@ -190,9 +228,15 @@ while program_running == True:
 
         action = input("¿Qué acción desea vender? (Ingresa las letras)\n").upper()
 
+<<<<<<< HEAD
         if action in actions_price:
             investment = Decimal(str(user.get('investment', 0)))
             action_price = actions_price[action]
+=======
+        if action in actionsPrice:
+            investment = Decimal(str(user.get('investment', 0)))
+            actionPrice = actionsPrice[action]
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
             money = Decimal(str(user['money']))
 
             if portfolio.get(action, 0) > 0:
@@ -210,7 +254,11 @@ while program_running == True:
 
                 table.update_item(
                     Key={'email': user_id},
+<<<<<<< HEAD
                     UpdateExpression="SET money = :new_balance, portfolio = :portfolio, history = :history REMOVE investment",
+=======
+                    UpdateExpression="SET money = :nuevo_saldo, portfolio = :portafolio, history = :historial REMOVE investment",
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
                     ExpressionAttributeValues={
                         ':new_balance': final_money,
                         ':portfolio': portfolio,
@@ -224,8 +272,13 @@ while program_running == True:
         else:
             print_color("----Acción no disponible----", 'ERROR')
 
+<<<<<<< HEAD
     elif what_do == "3":
         def investment_summary():
+=======
+    elif WhatDo == "3":
+        def resumenInversion():
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
             response = table.get_item(Key={"email": user_id})
             user = response.get('Item')
 
@@ -239,6 +292,11 @@ while program_running == True:
                 else:
                     print_color("Aún no ha invertido en ninguna acción.", 'WARNING')
                 print_color(f"Saldo disponible: ${user['money']}", 'INFO')
+<<<<<<< HEAD
+=======
+
+                # muestra el historial completo
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
                 history = user.get('history', [])
                 if history:
                     print_color("\nHistorial de transacciones:", 'INFO')
@@ -248,8 +306,15 @@ while program_running == True:
                 else:
                     print_color("No hay historial de transacciones.", 'WARNING')
             else:
+<<<<<<< HEAD
                 print_color("Usuario no encontrado.", 'ERROR')
         investment_summary()
     elif what_do == "4":
+=======
+                print_color("user no encontrado.", 'ERROR')
+        resumenInversion()
+
+    elif WhatDo == "4":
+>>>>>>> 3fdbb67913268ea2136db59b0b6f1291c03bdaea
         print_color("Saliendo...", 'INFO')
         exit()
