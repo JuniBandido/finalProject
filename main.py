@@ -50,12 +50,12 @@ def actionsList():
                 resp = requests.get(url, timeout=5)
                 data = resp.json()
                 if 'price' in data and data['price'] not in [None, 'None', '', 'null']:
-                    print_color(f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}", 'INFO')  # precios obtenidos
+                    print_color(Fore.BLUE + f"[INFO] Precio actual de {name} ({symbol}): ${data['price']}",)  # precios obtenidos
                     precios[symbol] = Decimal(data['price'])
                     intentos = 0
                 else:
                     error_msg = data.get('message', 'Respuesta inválida.')
-                    print_color(f"[ERROR] No se pudo obtener el precio de {name} ({symbol}): {error_msg}", 'ERROR')
+                    print_color(Fore.RED + f"[ERROR] No se pudo obtener el precio de {name} ({symbol}): {error_msg}",)
                     intentos = 0
             except Exception as e:
                 intentos -= 1
@@ -258,7 +258,6 @@ while programRunning == True:
             else:
                 print_color("user no encontrado.", 'ERROR')
         resumenInversion()
-
 
     elif WhatDo == "4":
         print_color("Saliendo...", 'INFO')
