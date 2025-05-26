@@ -62,8 +62,8 @@ def actionsList():
                 if intentos == 0:
                     print_color(f"[ERROR] No se pudo obtener el precio de {name} ({symbol}) tras varios intentos.", 'ERROR')
                 else:
-                    time.sleep(1)
-        time.sleep(1)  # tiempo de espera entre cada acción
+                    time.sleep(2)
+        time.sleep(2)  # tiempo de espera entre cada acción
     return precios
 
 def newMoney():
