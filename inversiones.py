@@ -21,7 +21,7 @@ def realizar_inversion(user_id, nombre_accion, monto_invertido):
         'inversion_id': f"{user_id}_{datetime.now().isoformat()}",
         'user_id': user_id,
         'accion': nombre_accion,
-        'monto': float(monto_invertido),
+        'monto': float(monto_invertido), 
         'fecha': datetime.now().isoformat()
     }
 
